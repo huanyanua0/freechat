@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>极简匿名聊</title>
+    <script src="https://cdn.jsdelivr.net/combine/npm/peerjs@1.4.7/dist/peerjs.min.js,gh/mdn/dom-examples@main/web-crypto/encrypt-decrypt/script.js"></script>
+</head>
+<body style="margin:20px">
+    <h2>📱 输入消息开始聊天</h2>
+    <input id="msg" placeholder="输入文字..." style="width:200px;padding:8px">
+    <button onclick="send()" style="padding:8px">发送</button>
+    <div id="chat" style="margin-top:20px"></div>
+    
+    <script>
+        let peer, conn
+        // 自动生成设备码
+        const deviceCode = Math.random().toString(36).slice(2,10)
+        const link = `${location.href}?peer=${deviceCode}`
+        
+        // 初始化
+        peer = new Peer(deviceCode)
+        peer.on('connection', c => {
+            conn = c
+            conn.on('data', data => {
+                document.getElementById('chat').innerHTML += `<div>对方：${data}</div>`
+            })
+        })
+
+        // 发送消息
+        function send() {
+            const msg = document.getElementById('msg').value
+            if(conn) {
+                conn.send(msg)
+                document.getElementById('chat').innerHTML += `<div>我：${msg}</div>`
+            } else alert('请先分享下方链接给聊天对象！')
+        }
+
+        // 显示分享链接
+        document.write(`
+            <div style="margin-top:30px;border:1px solid #ccc;padding:15px">
+                <b>你的专属链接：</b><br>
+                <input value="${link}" id="myLink" style="width:300px;margin:10px 0"><br>
+                <button onclick="navigator.clipboard.writeText('${link}')">复制链接</button>
+                <button onclick="window.open('https://cli.im/?text=${encodeURIComponent(link)}')">生成二维码</button>
+            </div>
+        `)
+    </script>
+</body>
+</html>
